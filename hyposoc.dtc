@@ -1,0 +1,10 @@
+/dts-v1/;
+
+/ {
+	uartlite_0@bfd18000 {
+		compatible = "xlnx,axi-uartlite-1.02.a";
+		reg = <0xbfd18000 0xfff>;
+		interrupts = <7>;
+		clock = <66000000>;
+};
+};

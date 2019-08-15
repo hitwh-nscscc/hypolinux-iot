@@ -1,0 +1,41 @@
+#
+# Miscellaneous I2C chip drivers configuration
+#
+# *** DEPRECATED! Do not add new entries! See Makefile ***
+#
+
+menu "Miscellaneous I2C Chip support"
+
+config DS1682
+	tristate "Dallas DS1682 Total Elapsed Time Recorder with Alarm"
+	depends on EXPERIMENTAL
+	help
+	  If you say yes here you get support for Dallas Semiconductor
+	  DS1682 Total Elapsed Time Recorder.
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called ds1682.
+
+config SENSORS_TSL2550
+	tristate "Taos TSL2550 ambient light sensor"
+	depends on EXPERIMENTAL
+	help
+	  If you say yes here you get support for the Taos TSL2550
+	  ambient light sensor.
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called tsl2550.
+
+config PCA9539
+    tristate "pca9539 keyboard controler driver"
+	depends on I2C
+config TS_ZT2083
+    tristate "zt2083 touchscreen driver"
+	depends on I2C
+
+config GPIO
+    tristate "LOONSON LS1B GPIO driver"
+	depends on I2C
+
+
+endmenu

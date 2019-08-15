@@ -1,0 +1,48 @@
+export PATH=/opt/gcc-4.3-ls232/bin:$PATH
+cmd=$1;
+
+case "$cmd" in
+initrd)
+cd /mnt/ramdisk.tiny/;find . |cpio -o -H newc|gzip -c > /tmp/initrd.gz
+;;
+qemu)
+shift
+/work/work/loongson/qemu/qemu-latest/mipsel-softmmu/qemu-system-mipsel -M ls232 -kernel vmlinux  -append 'video=ls1x_fb:1024x768-16 rdinit=/sbin/init initcall_debug=1 root=/dev/sda1 rd_start=0x84000000 rd_size=0x1000000'  -gdb tcp::1234 -m 256 -serial stdio "$@"
+;;
+qemu1)
+ sudo BD_GMAC=1 BD_OHCI=1 SIMPLEVGA=1024x768-16  /work/work/loongson/qemu/qemu-new/mipsel-softmmu/qemu-system-mipsel -M gs2fsb -usb -usbdevice keyboard -usbdevice mouse -kernel vmlinux -nographic -initrd /tmp/initrd.gz -append 'rdinit=/sbin/inita initcall_debug=1 ip=172.20.0.1:::::eth0 nfsroot=172.20.0.2:/work/huiyuan/ramdisk-rdesktop-9.3' -net nic -net tap
+;;
+qemu2)
+ sudo BD_GMAC=1 BD_OHCI=1 SIMPLEVGA=1024x768-16 /work/qemu/qemu/mipsel-softmmu/qemu-system-mipsel -M gs2fsb -usb -usbdevice keyboard -usbdevice mouse -kernel vmlinux -nographic -initrd /tmp/initrd.gz -append 'rdinit=/sbin/init initcall_debug=1 ip=172.20.0.1:::::eth0 nfsroot=172.17.20.3:/work/os/lenny' -net nic -net tap -usbdevice disk:/work/os/lenny.disk
+;;
+qemu3)
+ sudo BD_GMAC=1 BD_OHCI=1 BD_AHCI=1 SIMPLEVGA=1024x768-16 /work/qemu/qemu/mipsel-softmmu/qemu-system-mipsel -M gs2fsb -usb -usbdevice keyboard -usbdevice mouse -kernel vmlinux -nographic -initrd /tmp/initrd.gz -append 'rdinit=/sbin/init initcall_debug=1 ip=172.20.0.1:::::eth0 nfsroot=172.17.20.3:/work/os/lenny' -net nic -net tap -drive if=sata,file=/work/os/lenny.disk
+;;
+qemu4)
+shift
+ sudo /work/qemu/qemu-new/mipsel-softmmu/qemu-system-mipsel -M ls1b -kernel vmlinux -serial vc -serial vc -serial stdio -m 512 -append 'console=ttyS0,115200 rdinit=/sbin/init'  -net nic -net tap "$@"
+;;
+vmlinux)
+make ARCH=mips CROSS_COMPILE=mipsel-linux- -j4 "$@"
+cp vmlinux vmlinux.striped
+mipsel-linux-strip vmlinux.striped
+gzip -c vmlinux.striped > vmlinux.gz
+;;
+debug)
+shift;
+set -x
+tmux new-window  ./mymake $@
+LDIR=`pwd`
+tmux new-window sh -c "cd /work/work/loongson/ejtag-debug; ENV_memsize=256 FG=1 python scripts/gdb.proxy.32.py $LDIR/vmlinux"
+cat > /tmp/gdb.txt << AAA
+set architecture mips:isa32
+target remote 127.0.0.1:9000
+source scripts/gdb1.py
+AAA
+cd /work/work/loongson/ejtag-debug
+gdb-multiarch $LDIR/vmlinux -x /tmp/gdb.txt
+;;
+*)
+make ARCH=mips CROSS_COMPILE=mipsel-linux- "$@" -j4
+;;
+esac
